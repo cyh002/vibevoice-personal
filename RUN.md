@@ -35,8 +35,8 @@ curl -X POST http://localhost:8716/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "text": "Hello, this is a test of voice synthesis",
-    "voice_id": "d0b84353-3dfb-41da-bb30-a9d354b8a5fd",
-    "cfg_scale": 1.3,
+    "voice_name": "chris-english",
+    "cfg_scale": 2.0,
     "num_speakers": 1
   }' \
   -o response.json

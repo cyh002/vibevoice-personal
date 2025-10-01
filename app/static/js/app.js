@@ -1,5 +1,5 @@
 // Global variables
-let selectedVoiceId = null;
+let selectedVoiceName = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
@@ -204,10 +204,10 @@ function displayVoices(voices) {
     voices.forEach(voice => {
         const voiceCard = document.createElement('div');
         voiceCard.className = 'voice-card';
-        voiceCard.dataset.voiceId = voice.id;
+        voiceCard.dataset.voiceName = voice.name;
         voiceCard.onclick = (e) => {
             if (!e.target.classList.contains('delete-btn') && !e.target.closest('.delete-btn')) {
-                selectVoice(voice.id);
+                selectVoice(voice.name);
             }
         };
 
@@ -215,7 +215,7 @@ function displayVoices(voices) {
             voice.type === 'uploaded' ? 'fa-upload' : 'fa-user-circle';
 
         voiceCard.innerHTML = `
-            <button class="delete-btn" onclick="confirmDeleteVoice('${voice.id}', '${voice.name}')" title="Delete Voice">
+            <button class="delete-btn" onclick="confirmDeleteVoice('${voice.name}')" title="Delete Voice">
                 <i class="fas fa-trash"></i>
             </button>
             <i class="fas ${icon} voice-icon"></i>
@@ -238,30 +238,30 @@ function refreshVoices() {
     showToast('Voices refreshed', 'success');
 }
 
-function selectVoice(voiceId) {
-    selectedVoiceId = voiceId;
+function selectVoice(voiceName) {
+    selectedVoiceName = voiceName;
 
     document.querySelectorAll('.voice-card').forEach(card => {
         card.classList.remove('selected');
     });
 
-    const selectedCard = document.querySelector(`[data-voice-id="${voiceId}"]`);
+    const selectedCard = document.querySelector(`[data-voice-name="${voiceName}"]`);
     if (selectedCard) {
         selectedCard.classList.add('selected');
     }
 }
 
-function confirmDeleteVoice(voiceId, voiceName) {
+function confirmDeleteVoice(voiceName) {
     document.getElementById('delete-message').textContent = `Are you sure you want to delete the voice "${voiceName}"?`;
-    deleteCallback = () => deleteVoice(voiceId);
+    deleteCallback = () => deleteVoice(voiceName);
     document.getElementById('delete-modal').style.display = 'flex';
 }
 
-async function deleteVoice(voiceId) {
+async function deleteVoice(voiceName) {
     showLoading('Deleting voice...');
 
     try {
-        const response = await fetch(`${API_BASE}/voices/${voiceId}`, {
+        const response = await fetch(`${API_BASE}/voices/${voiceName}`, {
             method: 'DELETE'
         });
 
@@ -269,8 +269,8 @@ async function deleteVoice(voiceId) {
             showToast('Voice deleted successfully', 'success');
 
             // Clear selection if deleted voice was selected
-            if (selectedVoiceId === voiceId) {
-                selectedVoiceId = null;
+            if (selectedVoiceName === voiceName) {
+                selectedVoiceName = null;
             }
 
             await loadVoices();
@@ -696,7 +696,7 @@ function updateTextStats() {
 
 // Speech Generation
 async function generateSpeech() {
-    if (!selectedVoiceId) {
+    if (!selectedVoiceName) {
         showToast('Please select a voice', 'warning');
         return;
     }
@@ -730,7 +730,7 @@ async function generateSpeech() {
             },
             body: JSON.stringify({
                 text: text,
-                voice_id: selectedVoiceId,
+                voice_name: selectedVoiceName,
                 num_speakers: numSpeakers,
                 cfg_scale: cfgScale
             })
@@ -766,7 +766,7 @@ async function generateFromFile() {
 
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    formData.append('voice_id', selectedVoiceId);
+    formData.append('voice_name', selectedVoiceName);
     formData.append('cfg_scale', cfgScale);
 
     showLoading('Generating speech from file...');

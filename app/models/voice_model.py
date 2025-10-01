@@ -32,7 +32,7 @@ class GenerationRequest(BaseModel):
     """TTS generation request model."""
 
     text: str
-    voice_id: str
+    voice_name: str
     num_speakers: int = Field(default=1, ge=1, le=4)
     cfg_scale: float = Field(default=1.3, ge=1.0, le=2.0)
     output_format: str = Field(default="wav")

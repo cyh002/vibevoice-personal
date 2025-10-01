@@ -40,14 +40,20 @@ async def get_voices(search: Optional[str] = Query(None)):
     return voices
 
 
-@router.delete("/voices/{voice_id}")
-async def delete_voice(voice_id: str):
+@router.delete("/voices/{voice_name}")
+async def delete_voice(voice_name: str):
     """Delete a voice profile."""
     try:
-        success = voice_service.delete_voice_profile(voice_id)
+        # Find profile by name to get ID for deletion
+        profile = voice_service.voices_by_name.get(voice_name)
+        if not profile:
+            raise HTTPException(404, "Voice not found")
+
+        success = voice_service.delete_voice_profile(profile.id)
         if success:
             return {"success": True, "message": "Voice deleted successfully"}
         else:
+            # This case should ideally not be reached if profile was found
             raise HTTPException(404, "Voice not found")
     except Exception as e:
         logger.error(f"Failed to delete voice: {e}")
@@ -151,13 +157,12 @@ async def generate_speech(request: GenerationRequest):
     try:
         logger.info(f"Generating speech for text length: {len(request.text)}")
 
-        # Get voice profile to use its name
-        voice_profile = voice_service.get_voice_profile(request.voice_id)
-        voice_name = voice_profile.name if voice_profile else "unknown"
+        # The voice name is now directly available from the request
+        voice_name = request.voice_name
 
         audio_array = voice_service.generate_speech(
             text=request.text,
-            voice_id=request.voice_id,
+            voice_name=request.voice_name, # Pass voice_name
             num_speakers=request.num_speakers,
             cfg_scale=request.cfg_scale,
         )
@@ -195,14 +200,14 @@ async def generate_speech(request: GenerationRequest):
 @router.post("/generate/file")
 async def generate_from_file(
     file: UploadFile = File(...),
-    voice_id: str = Form(...),
+    voice_name: str = Form(...), # Changed from voice_id
     cfg_scale: float = Form(1.3),
 ):
     try:
         content = await file.read()
         text = content.decode("utf-8")
         logger.info(f"Generating from file: {file.filename}, text length: {len(text)}")
-        req = GenerationRequest(text=text, voice_id=voice_id, cfg_scale=cfg_scale)
+        req = GenerationRequest(text=text, voice_name=voice_name, cfg_scale=cfg_scale)
         return await generate_speech(req)
     except Exception as e:
         logger.error(f"File generation error: {e}")

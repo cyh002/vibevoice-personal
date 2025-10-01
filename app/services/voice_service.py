@@ -24,6 +24,7 @@ class VoiceService:
         self.model = None
         self.processor = None
         self.voices_cache: Dict[str, VoiceProfile] = {}
+        self.voices_by_name: Dict[str, VoiceProfile] = {}  # Add this for name-based lookup
         self.model_loaded = False
         self._initialize_model()
         self._load_voices()
@@ -120,19 +121,21 @@ class VoiceService:
 
         for voice_file in voice_files:
             voice_id = str(uuid.uuid4())
+            voice_name = voice_file.stem
             profile = VoiceProfile(
                 id=voice_id,
-                name=voice_file.stem,
+                name=voice_name,
                 type=VoiceType.PRESET,
                 file_path=str(voice_file),
             )
             self.voices_cache[voice_id] = profile
-            logger.info(f"Loaded voice: {voice_file.stem}")
+            self.voices_by_name[voice_name] = profile  # Populate the name-based lookup
+            logger.info(f"Loaded voice: {voice_name}")
 
     def generate_speech(
         self,
         text: str,
-        voice_id: str,
+        voice_name: str,  # Changed from voice_id
         num_speakers: int = 1,
         cfg_scale: float = 1.3,
     ) -> Optional[np.ndarray]:
@@ -141,10 +144,10 @@ class VoiceService:
          float32 NumPy audio when successful.
         """
         try:
-            # Validate voice
-            voice_profile = self.voices_cache.get(voice_id)
+            # Validate voice by name
+            voice_profile = self.voices_by_name.get(voice_name)
             if not voice_profile:
-                raise ValueError(f"Voice profile {voice_id} not found")
+                raise ValueError(f"Voice profile '{voice_name}' not found")
 
             # If model unavailable, return placeholder audio
             if not (self.model_loaded and self.model and self.processor):
@@ -269,6 +272,7 @@ class VoiceService:
             file_path=audio_path,
         )
         self.voices_cache[voice_id] = profile
+        self.voices_by_name[name] = profile  # Also add to name lookup
         logger.info(f"Added voice profile: {name} (type: {voice_type})")
         return profile
 
@@ -284,8 +288,10 @@ class VoiceService:
                 os.remove(profile.file_path)
                 logger.info(f"Deleted voice file: {profile.file_path}")
 
-            # Remove from cache
+            # Remove from caches
             del self.voices_cache[voice_id]
+            if profile.name in self.voices_by_name:
+                del self.voices_by_name[profile.name]
             logger.info(f"Deleted voice profile: {profile.name}")
             return True
 
