@@ -2,12 +2,12 @@
 
 ## Setup & Start
 ```bash
-source .venv/bin/activate
+source venv/bin/activate
 pip install -r requirements.txt
 python -m app.main
 ```
 
-Server runs at: `http://localhost:8716`
+Server runs at: `https://vibevoicetts.tail.cyhriside.quest`
 
 ## API Endpoints
 
@@ -21,17 +21,17 @@ Server runs at: `http://localhost:8716`
 
 ### Health Check
 ```bash
-curl http://localhost:8716/api/health
+curl httpss://vibevoicetts.tail.cyhriside.quest/api/health
 ```
 
 ### List Voices
 ```bash
-curl http://localhost:8716/api/voices
+curl https://vibevoicetts.tail.cyhriside.quest/api/voices
 ```
 
 ### Generate Speech
 ```bash
-curl -X POST http://localhost:8716/api/generate \
+curl -X POST https://vibevoicetts.tail.cyhriside.quest/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "text": "Hello, this is a test of voice synthesis",
@@ -44,23 +44,23 @@ curl -X POST http://localhost:8716/api/generate \
 
 ### Download Audio
 ```bash
-curl -X GET http://localhost:8716/api/audio/filename.wav -o output.wav
+curl -X GET https://vibevoicetts.tail.cyhriside.quest/api/audio/filename.wav -o output.wav
 ```
 
 ### Upload Voice
 ```bash
-curl -X POST http://localhost:8716/api/voices/upload \
+curl -X POST https://vibevoicetts.tail.cyhriside.quest/api/voices/upload \
   -F "file=@/path/to/voice.wav" \
   -F "name=MyVoice"
 ```
 
 ## Listen to Audio
 ```bash
-# Direct browser: http://localhost:8716/api/audio/filename.wav
+# Direct browser: https://vibevoicetts.tail.cyhriside.quest/api/audio/filename.wav
 # Command line:
-mpv http://localhost:8716/api/audio/filename.wav
+mpv https://vibevoicetts.tail.cyhriside.quest/api/audio/filename.wav
 vlc output.wav
 ```
 
 ## Web Interface
-Open `http://localhost:8716` for full UI testing
+Open `https://vibevoicetts.tail.cyhriside.quest` for full UI testing
